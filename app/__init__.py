@@ -20,8 +20,17 @@ def create_app():
 
     from . import models  # noqa: F401
 
-    # Register blueprints
-    from .routes.health import health_bp
-    app.register_blueprint(health_bp)
+    # # Register blueprints
+    # from .routes.health import health_bp
+    # app.register_blueprint(health_bp)
+
+    from .routes import register_blueprints
+    register_blueprints(app)
+
+
+    @app.get("/routes")
+    def show_routes():
+     return {"routes": sorted([str(r) for r in app.url_map.iter_rules()])}
+
 
     return app
