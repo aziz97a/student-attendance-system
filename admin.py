@@ -3,9 +3,9 @@ from app import create_app
 from app.extensions import db
 from app.models import User, UserRole
 
-ADMIN_NAME = os.getenv("ADMIN_NAME", "Super Admin")
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "123456")
+ADMIN_NAME = ""
+ADMIN_EMAIL = ""
+ADMIN_PASSWORD = ""
 
 app = create_app()
 
