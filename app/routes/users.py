@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
+from psycopg2 import IntegrityError
 
 from ..extensions import db
 from ..models import User, UserRole, Student, Teacher
@@ -108,5 +109,140 @@ def change_my_password():
     db.session.commit()
     return {"message": "password updated successfully"}, 200
 
+
+@users_bp.delete("/users/me")
+@jwt_required()
+def delete_my_account():
+    user_id = int(get_jwt_identity())
+    user = User.query.get_or_404(user_id)
+
+    data = request.get_json(silent=True) or {}
+    password = data.get("password") or ""
+
+    if not password:
+        return {"error": "password is required"}, 400
+
+    if not user.check_password(password):
+        return {"error": "password is incorrect"}, 401
+
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return {"message": "account deleted"}, 200
+
+    except IntegrityError:
+        db.session.rollback()
+        # Most likely: teacher owns courses (teacher_id has RESTRICT)
+        return {
+            "error": "cannot delete account due to related data (e.g., courses owned). "
+                     "Delete/transfer related records first."
+        }, 409
+    
+
+@users_bp.get("/students/me")
+@jwt_required()
+def get_student_profile_me():
+    user_id = int(get_jwt_identity())
+    user = User.query.get_or_404(user_id)
+
+    if user.role != UserRole.student:
+        return {"error": "forbidden (student only)"}, 403
+
+    profile = Student.query.get(user_id)  # PK = user_id
+    if not profile:
+        return {"error": "student profile not found"}, 404
+
+    return profile.to_dict(), 200
+
+
+@users_bp.put("/students/me")
+@jwt_required()
+def set_student_profile_me():
+    user_id = int(get_jwt_identity())
+    user = User.query.get_or_404(user_id)
+
+    if user.role != UserRole.student:
+        return {"error": "forbidden (student only)"}, 403
+
+    data = request.get_json(silent=True) or {}
+
+    student_no = (data.get("student_no") or "").strip() or None
+    department = (data.get("department") or "").strip() or None
+    year_level = data.get("year_level", None)
+
+    if year_level is not None:
+        try:
+            year_level = int(year_level)
+        except (TypeError, ValueError):
+            return {"error": "year_level must be an integer"}, 400
+
+    profile = Student.query.get(user_id)
+    if not profile:
+        profile = Student(user_id=user_id)
+        db.session.add(profile)
+
+    # Unique checks (only if provided)
+    if student_no:
+        existing = Student.query.filter(Student.student_no == student_no, Student.user_id != user_id).first()
+        if existing:
+            return {"error": "student_no already exists"}, 409
+
+    profile.student_no = student_no
+    profile.department = department
+    profile.year_level = year_level
+
+    db.session.commit()
+    return profile.to_dict(), 200
+
+
+
+
+
+@users_bp.get("/teachers/me")
+@jwt_required()
+def get_teacher_profile_me():
+    user_id = int(get_jwt_identity())
+    user = User.query.get_or_404(user_id)
+
+    if user.role != UserRole.teacher:
+        return {"error": "forbidden (teacher only)"}, 403
+
+    profile = Teacher.query.get(user_id)  # PK = user_id
+    if not profile:
+        return {"error": "teacher profile not found"}, 404
+
+    return profile.to_dict(), 200
+
+
+@users_bp.put("/teachers/me")
+@jwt_required()
+def set_teacher_profile_me():
+    user_id = int(get_jwt_identity())
+    user = User.query.get_or_404(user_id)
+
+    if user.role != UserRole.teacher:
+        return {"error": "forbidden (teacher only)"}, 403
+
+    data = request.get_json(silent=True) or {}
+
+    staff_no = (data.get("staff_no") or "").strip() or None
+    title = (data.get("title") or "").strip() or None
+
+    profile = Teacher.query.get(user_id)
+    if not profile:
+        profile = Teacher(user_id=user_id)
+        db.session.add(profile)
+
+    # Unique checks (only if provided)
+    if staff_no:
+        existing = Teacher.query.filter(Teacher.staff_no == staff_no, Teacher.user_id != user_id).first()
+        if existing:
+            return {"error": "staff_no already exists"}, 409
+
+    profile.staff_no = staff_no
+    profile.title = title
+
+    db.session.commit()
+    return profile.to_dict(), 200
 
 
