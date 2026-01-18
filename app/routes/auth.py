@@ -34,6 +34,7 @@ def login():
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
+        "must_change_password": user.must_change_password,
         "user": user.to_dict(),
     }, 200
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, DateTime, Date, String
+from sqlalchemy import ForeignKey, DateTime, Date, String, Float, Integer, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..extensions import db
@@ -36,7 +36,13 @@ class AttendanceSession(db.Model):
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    # QR will encode this token (or a URL containing it)
+    # classroom location (from teacher phone)
+    lat: Mapped[float] = mapped_column(Float, nullable=False)
+    lng: Mapped[float] = mapped_column(Float, nullable=False)
+    radius_m: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
+
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
     qr_token: Mapped[str] = mapped_column(String(120), unique=True, nullable=False, index=True)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -56,18 +62,22 @@ class AttendanceSession(db.Model):
         passive_deletes=True,
     )
 
-    def is_active(self, now: datetime) -> bool:
-        # helper for “is QR still valid?”
-        return self.starts_at <= now <= self.ends_at
+    def is_open(self, now: datetime) -> bool:
+        """True if session is active AND within time window."""
+        return self.is_active and self.starts_at <= now <= self.ends_at
 
     def to_dict(self) -> dict:
         return {
             "id": self.id,
             "course_id": self.course_id,
             "teacher_id": self.teacher_id,
-            "session_date": self.session_date.isoformat() if self.session_date else None,
-            "starts_at": self.starts_at.isoformat() if self.starts_at else None,
-            "ends_at": self.ends_at.isoformat() if self.ends_at else None,
+            "session_date": self.session_date.isoformat(),
+            "starts_at": self.starts_at.isoformat(),
+            "ends_at": self.ends_at.isoformat(),
+            "lat": self.lat,
+            "lng": self.lng,
+            "radius_m": self.radius_m,
+            "is_active": self.is_active,
             "qr_token": self.qr_token,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": self.created_at.isoformat(),
         }

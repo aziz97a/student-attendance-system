@@ -106,6 +106,8 @@ def change_my_password():
         return {"error": "current_password is incorrect"}, 401
 
     user.set_password(new_password)
+    user.must_change_password = False
+
     db.session.commit()
     return {"message": "password updated successfully"}, 200
 

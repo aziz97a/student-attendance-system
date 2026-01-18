@@ -6,6 +6,8 @@ from enum import Enum
 from sqlalchemy import String, Boolean, DateTime, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean
+
 
 from ..extensions import db
 
@@ -18,7 +20,7 @@ class UserRole(str, Enum):
 
 class User(db.Model):
     __tablename__ = "users"
-
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     id: Mapped[int] = mapped_column(primary_key=True)
     full_name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str] = mapped_column(String(190), unique=True, nullable=False, index=True)

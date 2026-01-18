@@ -1,6 +1,8 @@
 from flask import Flask
 from .config import Config
 from .extensions import db, migrate , jwt
+from .models import *  # or explicitly import all models
+
 
 def create_app():
     app = Flask(__name__)
