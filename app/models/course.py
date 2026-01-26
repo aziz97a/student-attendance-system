@@ -21,6 +21,7 @@ class Course(db.Model):
 
     code: Mapped[str] = mapped_column(String(30), unique=True, nullable=False, index=True)  # e.g., CS101
     name: Mapped[str] = mapped_column(String(160), nullable=False)
+    planned_sessions: Mapped[int] = mapped_column(nullable=False, default=14)
 
     teacher_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),
@@ -60,5 +61,6 @@ class Course(db.Model):
             "name": self.name,
             "teacher_id": self.teacher_id,
             "semester": self.semester,
+            "planned_sessions": self.planned_sessions,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

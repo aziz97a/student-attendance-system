@@ -5,6 +5,8 @@ from .courses import courses_bp
 from .bulk_import import bulk_bp
 from .attendance import attendance_bp
 from .sessions import sessions_bp
+from .students import students_bp
+from .reports import reports_bp
 
 def register_blueprints(app):
     ...
@@ -15,6 +17,8 @@ def register_blueprints(app):
     app.register_blueprint(bulk_bp, url_prefix="/api")
     app.register_blueprint(sessions_bp, url_prefix="/api")
     app.register_blueprint(attendance_bp, url_prefix="/api")
+    app.register_blueprint(students_bp, url_prefix="/api")
+    app.register_blueprint(reports_bp, url_prefix="/api")
 
 
     

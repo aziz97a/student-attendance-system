@@ -82,7 +82,7 @@ def checkin():
         session.is_active = False
         db.session.commit()
         return {"error": "session expired"}, 400
-
+ 
     # enrollment check
     if not Enrollment.query.filter_by(course_id=session.course_id, student_id=student_id).first():
         return {"error": "not enrolled in this course"}, 403

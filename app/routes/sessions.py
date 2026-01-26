@@ -23,7 +23,7 @@ def _ensure_tz(dt: datetime) -> datetime:
   # -----------------------------
 # CREATE SESSION (teacher uses current GPS)
 # -----------------------------
-@sessions_bp.post("/sessions")
+@sessions_bp.post("/create-sessions")
 @jwt_required()
 def create_session():
     claims = get_jwt() or {}
@@ -172,6 +172,8 @@ def list_sessions():
     return {"items": [s.to_dict() for s in sessions]}, 200
 
 
+# -----------------------------
+# SESSION ATTENDANCE DETAIL (teacher/admin)
 @sessions_bp.get("/sessions/<int:session_id>/attendance")
 @jwt_required()
 def session_attendance(session_id: int):
@@ -265,3 +267,5 @@ def session_attendance(session_id: int):
         },
         "items": items,
     }, 200
+
+
