@@ -59,7 +59,7 @@ class AttendanceRecord(db.Model):
 
     session: Mapped["AttendanceSession"] = relationship("AttendanceSession", back_populates="records")
     # optional if you have it:
-    # student: Mapped["User"] = relationship("User", back_populates="attendance_records")
+    student: Mapped["User"] = relationship("User", back_populates="attendance_records")
 
     def to_dict(self):
         return {

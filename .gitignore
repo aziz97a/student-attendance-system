@@ -1,3 +1,6 @@
 .env
 /migrations/
 ate/
+dockerfile
+__pycache__/
+docker-compose.yml
